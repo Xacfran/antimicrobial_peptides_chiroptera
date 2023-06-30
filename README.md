@@ -1,5 +1,5 @@
-# Antimicrobial Peptide
-This repository holds the files and code used to predict and annotate antimicrobial peptides in Chiroptera and identify gene gains/losses while also trying to characterize species-specific gene clusters (Castellanos et al. 2023).
+# Antimicrobial Peptides in Chiroptera
+This repository holds the files and code used to predict and annotate antimicrobial peptides in Chiroptera and identify gene gains/losses while also trying to characterize species-specific gene clusters.
 
 The project attempts to get a better understanding of gene-family evolution of antimicrobial peptides, specifically the defensins (α and β) and cathelicidin families across the order Chiroptera.
 
@@ -80,7 +80,7 @@ test_bat_AMPs <- predict_amps(bat_test_set, min_len = 5, model = my_bat_svm_mode
 # GENE SEARCH IN GENOMES
 ## The AMPlify Pipeline
 
-This workflow is taken from [Li et al. 2022](https://bmcgenomics-biomedcentral-com.lib-e2.lib.ttu.edu/articles/10.1186/s12864-022-08310-4#Sec9), and has been modified to adjust to our needs.
+This workflow is taken from [Li et al. 2022](https://bmcgenomics-biomedcentral-com.lib-e2.lib.ttu.edu/articles/10.1186/s12864-022-08310-4#Sec9), and has been modified to adjusted for this project.
 
 ## Databases
 
