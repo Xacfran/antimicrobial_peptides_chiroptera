@@ -241,7 +241,7 @@ seqtk subseq "$DIR"/"$bat".all.maker.proteins.fasta "$DIR"/all_other_amps/"$bat"
 sed -i "s/^>/"$bat"_/g" "$DIR"/all_other_amps/"$bat"_all_other_amps.fasta
 done
 ```
-Then I concatenated all these files for a final prediction round.
+Then I concatenated all these files into a single `bats_all_other_amps.fasta` file for a final prediction round.
 
 # Final AMPs Prediction
 
@@ -266,7 +266,14 @@ seqkit fx2tab uniprot_non_amps.fasta -l | awk '{print $1"\t"$3}' > uniprot_non_a
 Finally, I approximated the peptide length distribution of the **negative dataset** to the **positive dataset** using the custom R script shown below.
 
 ```R
-iterations <- seq(1,210,10)
+# Import data
+positive <- read.table("uniprot_potential_defens_cath_over6aas_length.txt",
+                       header = T, sep = "\t") %>% na.omit()
+negative <- read.table("uniprot_non_amps_length.txt",
+                       header = T, sep = "\t") %>% na.omit()
+
+# Loop to approximate the negative dataset to the positive dataset
+iterations <- seq(1, 210, 10)
 final_distribution <- c()
 
 for (i in 1 : length(iterations)){
@@ -287,13 +294,11 @@ The resulting distributions are shown below:
 
 ![](https://i.imgur.com/9VET2Yp.jpg)
 
-For alpha-beta defensins and cathelicidins prediction, I repeated the same steps as explained previously. However, I varied the dataset used as the training dataset, using the same that I built for the AMPlify pipeline, but keeping only sequences that contain more than **10 aminoacids** and I fixed the length distribution as well.
+For alpha-beta defensins and cathelicidins prediction, I repeated the same steps as explained [previously](#AMP-probability-estimation). However, I varied the dataset used as the training dataset, using the same that I built for the AMPlify pipeline, but keeping only sequences that contain more than **10 aminoacids** and I fixed the length distribution as well.
 
-I made a final alignment and got rid of sequences that did not have the 4-6 cystein motif. So the dataset went from 337 predicted proteins to 333 for the **final defensins+cathelicidins dataset**.
+I made a final multisequence alignment and got rid of sequences that did not have the 4-6 cystein motif. So the dataset went from 337 predicted proteins to 333 for the **final defensins+cathelicidins dataset**.
 
 This file is found in the `fasta_files` folder under the name `predicted_bat_defensins_cathelicidins.fasta`.
-
-```bash
 
 ## Any other AMP prediction
 
