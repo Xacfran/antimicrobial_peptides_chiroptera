@@ -14,6 +14,7 @@ This project attempts to get a better understanding of gene-family evolution of 
   - [Databases](#Databases)
     - [Positive training set](#Positive-training-set)
     - [Negative training set](#Negative-training-set)
+    - [Potential AMPS](#Potential-AMPs-dataset)
   - [Aligning AMPs precursors to the genomes with GMAP](##Aligning-AMPs-precursors-to-the-genomes-with-GMAP)
   - [MAKER2](##MAKER2)
 - [Functional Annotation](#functional-annotation)
@@ -62,14 +63,14 @@ First a training dataset was built following the [How to train your model](https
 
 ```r
 # Create train and test sets
-trainIndex <- createDataPartition(y=bats_features$Label, p = 0.7, list = FALSE)
+trainIndex <- createDataPartition(y = bats_features$Label, p = 0.7, list = FALSE)
 bats_featuresTrain <- bats_features[trainIndex,]
 bats_featuresTest <- bats_features[-trainIndex,]
 
 #train model
 my_bat_svm_model <- train(Label~.,
                           data = bats_featuresTrain[,-1],
-                          method="svmRadial",
+                          method ="svmRadial",
                           trControl = trctrl_prob,
                           preProcess = c("center", "scale"))
 
@@ -80,19 +81,20 @@ test_bat_AMPs <- predict_amps(bat_test_set, min_len = 5, model = my_bat_svm_mode
 # GENE SEARCH IN GENOMES
 ## The AMPlify Pipeline
 
-This workflow is taken from [Li et al. 2022](https://bmcgenomics-biomedcentral-com.lib-e2.lib.ttu.edu/articles/10.1186/s12864-022-08310-4#Sec9), and has been modified to adjusted for this project.
+This workflow is taken from [Li et al. 2022](https://bmcgenomics-biomedcentral-com.lib-e2.lib.ttu.edu/articles/10.1186/s12864-022-08310-4#Sec9), and has been modified and adjusted to our needs.
 
 ## Databases
 
 ### Positive training set
 
-The **training set** included: [APD3](https://aps.unmc.edu/) containing 3,172 AMP aminoacid sequences from a variety of Phyla. The latest version (Jan. 2020) of entire database was downloaded [here](https://aps.unmc.edu/downloads). It also includes DEFA, DEFB, and CTHL fasta files that have been manually curated from NCBI and ENSEMBL of the outgroup chosen for this work. Finally, the manually curated database of DEFA,DEFB and CTHl of bats proteomes. **Total 3,694 protein sequences**.
+The **training set** included:
+- [APD3 database](https://aps.unmc.edu/) containing 3,172 AMP aminoacid sequences from a variety of Phyla. The latest version (Jan. 2020) of entire database was downloaded [here](https://aps.unmc.edu/downloads).
+- DEFA, DEFB, and CTHL fasta files that were manually curated from NCBI and ENSEMBL of the outgroup chosen for this work.
+- Manually curated database of DEFA,DEFB and CTHl of bats proteomes.
 
-To achieve this, the fasta file was first edited to avoid conflicts due to headers.
+After I concatenated the file that contained the bats, vertebrate and APD3 sequences (3,694 proteins), I cleaned it using [seqkit](https://bioinf.shenwei.me/seqkit/) as follows:
 
 ```bash
-#After I merged the bats, vertebrate and APD3 in a single file, I used
-
 seqkit fx2tab apd_bats_laura.fasta -l -i -H -C BJOUXZ | awk '{ if ($3 <= 200 && $4 < 1 ) {print $1 "\t" $2} }' | seqkit tab2fx | seqkit rmdup -s -o clean_apd_bats_laura.fasta -D duplicated_apd_bats_laura.txt
 ```
 
