@@ -1,4 +1,5 @@
 cff-version: 1.2.0
+type: dataset
 message: "If you use this software, please cite it as below."
 authors:
   - family-names: Castellanos
@@ -15,9 +16,34 @@ preferred-citation:
   - family-names: Castellanos
     given-names: Francisco X.
     orcid: https://orcid.org/0000-0003-0955-8185
-  - family-names: "Bot"
-    given-names: "Hew"
-    orcid: "https://orcid.org/0000-0000-0000-0000"
+  - family-names: Moreno-Santillan
+    given-names: Diana
+  - family-names: Hughes
+    given-names: Graham M.
+  - family-names: Paulat
+    given-names: Nicole S.
+  - family-names: Sipperly
+    given-names: Nicolette
+  - family-names: Brown
+    given-names: Alexis
+  - family-names: Martin
+    given-names: Katherine
+  - family-names: Poterewicz
+    given-names: Gregory M.
+  - family-names: Lim
+    given-names: Marisa C.W.
+  - family-names: Russell
+    given-names: Amy L.
+  - family-names: Moore
+    given-names: Marianne S.
+  - family-names: Johnson
+    given-names: Matthew
+  - family-names: Corthals
+    given-names: Angelique P.
+  - family-names: Ray
+    given-names: David A.
+  - family-names: Davalos
+    given-names: Liliana M.
   doi: "10.0000/00000"
   journal: "Frontiers in Immunology"
   month: 1
