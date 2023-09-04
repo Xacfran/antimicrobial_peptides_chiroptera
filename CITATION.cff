@@ -1,9 +1,29 @@
 cff-version: 1.2.0
-message: "If you use this code, please cite it as below."
+message: "If you use this software, please cite it as below."
 authors:
   - family-names: Castellanos
-    given-names: Francisco
+    given-names: Francisco X.
     orcid: https://orcid.org/0000-0003-0955-8185
-title: "The evolution of antimicrobial peptides in Chiroptera"
+title: "AMPs in Chiroptera"
+version: 0.2
 doi: 10.5281/zenodo.8144377
-
+date-released: 2023-09-04
+url: "https://github.com/Xacfran/antimicrobial_peptides_chiroptera"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: Castellanos
+    given-names: Francisco X.
+    orcid: https://orcid.org/0000-0003-0955-8185
+  - family-names: "Bot"
+    given-names: "Hew"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+  doi: "10.0000/00000"
+  journal: "Frontiers in Immunology"
+  month: x
+  start: xx # First page number
+  end: xx # Last page number
+  title: "The evolution of antimicrobial peptides in Chiroptera"
+  issue: xx
+  volume: xx
+  year: 2023
