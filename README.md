@@ -7,6 +7,7 @@ This project attempts to get a better understanding of gene-family evolution of 
 
 # Table of Contents
 
+- [Software requirements](#Software-requirements)
 - [Ortholog identification in bat proteomes](#Ortholog-identification-in-bat-proteomes)
 - [AMP probability estimation](#AMP-probability-estimation)
 - [Gene search in genomes](#Gene-search-in-genomes)
@@ -26,11 +27,31 @@ This project attempts to get a better understanding of gene-family evolution of 
   - [Any other AMP prediction](#Any-other-AMP-prediction)
 - [Functional annotations stats](#Functional-annotations-stats)
   - [All other AMPs](#All-other-AMPs)
+- [Extract genes from gffs](#Extract-genes-from-gffs)
+  - [Overview stats of genes](#Overview-stats-of-genes)
+  - [Extract genes](#Extract-genes)
+- [Annotate proteins with defensin subfamilies](#Annotate-proteins-with-defensin-subfamilies)
+
 - [Citation](#Citation)
+
+# Software requirements
+
+You should have the following software installed in your system:
+
+- [MAKER2](http://www.yandell-lab.org/software/maker.html)
+- [GMAP](http://research-pub.gene.com/gmap/)
+- [orthofisher](https://jlsteenwyk.com/orthofisher/install/index.html)
+- [Interproscan](https://interproscan-docs.readthedocs.io/en/latest/Introduction.html)
+- [seqkit](https://bioinf.shenwei.me/seqkit/)
+- [seqtk](https://github.com/lh3/seqtk)
+- [bedtools](https://bedtools.readthedocs.io/en/latest/)
+
+The installation of MAKER2 and its dependencies is explained in the [MAKER2 documentation](http://www.yandell-lab.org/software/maker.html). The installation of GMAP is detailed [here](https://github.com/juliangehring/GMAP-GSNAP).
+The rest of the software can be installed using [conda](https://docs.conda.io/en/latest/) environments.
 
 # Ortholog identification in bat proteomes
 
-Search was done using [orthofisher](https://github.com/JLSteenwyk/orthofisher#quick-start), which initiaties a HMMER search and further incorporates a best-hit BUSCO pipeline. DEFAs with e-values < 0.001 and 80% best hits were kept, whereas 75% was used for DEFBs.
+Search was done using [orthofisher](https://jlsteenwyk.com/orthofisher/), which initiaties a HMMER search and further incorporates a best-hit BUSCO pipeline. DEFAs with e-values < 0.001 and 80% best hits were kept, whereas 75% was used for DEFBs.
 
 Refer to the orthofisher documentation to familiarize with the contents of `fasta_args.txt` used in the following loop.
 
@@ -68,7 +89,6 @@ You can either write one loop for every AMP family or write a loop that iterates
 After quering bat proteomes and keeping sequences based on criteria mentioned in Castellanos et al. (2023), resulting datasets were subjected to an AMP probability test using the [ampir](https://github.com/Legana/AMP_pub) package.
 
 First a training dataset was built following the [How to train your model](https://cran.r-project.org/web/packages/ampir/vignettes/train_model.html) vignette. After the training was completed, a subsampling of the dataset (70 random sequences) is obtained and the model is tested:
-
 
 ```r
 # Create train and test sets
@@ -253,7 +273,7 @@ done
 Then I concatenated all these files into a single `bats_all_other_amps.fasta` file for a final prediction round.
 
 # Final AMPs Prediction
-`
+
 ## Defensins and cathelicidins prediction
 
 To make the defensins/cathelicidins prediction of the proteins obtained in MAKER, I subsetted the potential amps dataset created [here](###Potential-AMPs-dataset), by only selecting the defensins and cathelicidins sequences first:
@@ -313,7 +333,7 @@ This file is found in the `fasta_files` folder under the name `predicted_bat_def
 
 To estimate the probability of all the other AMPs besides defensins and cathelicidins, I used the built-in `predict_mature` function in ampir using the `bats_all_other_amps.fasta` file I generated above.
 
-```R
+```r
 bats_all_other_amps <- read_faa(file="bats_all_other_amps.fasta")
 bats_all_other_amps <- remove_nonstandard_aa(bats_all_other_amps)
 
@@ -373,6 +393,216 @@ do
 column -t -s $'\t' "$bat"/"$bat".maker.output/curated_"$bat"_proteins.tsv | grep -v MobiDBLite | grep -v PRINTS | awk '{print $1 "\t" $6 "\t" $7}' | sed "s/,//g"  | awk '{ if ($3 >= 0 ) {print $1 "\t" $2} }' | awk 'NR==1 {print $0}; NR>1 {if(cat[$1])cat[$1]=cat[$1]", "$2; else cat[$1]=$2;}; END{j=1; for (i in cat) print i, cat[i]}' | sed "s/^/"$bat"\t/g"  | sed "s/,/\t/g" | column -t -s $'\t' | awk '{print $1 "\t" $2 "\t" $3 "\t" $4}' >> interpro.results.tsv
 done
 ```
+# Extract genes from gffs
+
+Extracting $\alpha$, $\beta$-defensin, and cathelicidin genes (nucleotides) from the gff files that MAKER creates was necessary for the TE analysis.
+
+## Overview stats of genes
+
+I used the `predicted_bat_defensins_cathelicidins.fasta` file from the ampir prediction and the MAKER gffs to have an overview of the lengths of the genes. The bash script to estimate gene length and number of exons is shown below:
+
+```bash
+#Small edits were done for the beta and cathelicidin genes
+for i in $(cat bat_list_amps.txt)
+do
+while read -r line
+do
+  gene_name=$(echo "$line" | awk '{print $2}')
+  count=$(grep "$gene_name" "$i".gff | awk '$3 == "exon"' | wc -l)
+  echo -e "$line\t$count"
+done < <(grep -Fwf "$i"_alpha_defensins_headers.txt "$i".gff | sed "s/=/\t/g" | awk -v species="$i" '$3 == "gene" {print species"\t"$11"\t"$5-$4}') >> bats_alpha_defensins_genes_stats.txt
+done
+```
+I had to do some manual editing in the resulting file because of a bug where some exon counts were >3 due to grep was not matching exact patterns even though I was using the `-Fw` flags.
+
+In the $\beta$-defensins I manually edited one header because of the same issue found in the $\alpha$. Also the `maker-AnoCau_scaffold_2984-exonerate_protein2genome-gene-0.1` was deleted because it was not properly annotated by MAKER and had two concatenated defensin sequences in one.
+
+Finally, for the cathelicidins I deleted one sequence because it lacked the cystein residues and another small gene of tsaurophihla.
+
+## Extract genes
+
+The headers and the `./Gff3ToBed.sh` script I created for this purpose will only retrieve the genes that are >200 bp.
+
+```bash
+#!/bin/bash
+
+# Usage: ./Gff3ToBed.sh headers.txt input.gff3 output.bed
+
+# Check if input file exists
+if [ ! -f $1 ] && [ -f $2 ]; then
+    echo "Input files do not exist."
+    exit 1
+fi
+
+# Check if output file exists
+if [ -f $3 ]; then
+    echo "Output file already exists. Overwriting.."
+    rm $3
+fi
+
+# Look for the header in the gff and continue with the code
+# only if the gene is bigger than 200 bp.
+# Then print some columns of the gff and include the length of
+# the gene in the last column of the bed file.
+grep -Fwf "$1" "$2" | awk 'BEGIN {FS="\t"; OFS="\t"}
+     $2!~/^#/ && $3=="gene" && $5-$4>=200 {
+         split($9,a,";");
+         split(a[1],b,"=");
+         print $1,$2,$3,$4-1,$5,$6,$7,b[2],$5-$4}' > "$3.tmp"
+
+# Rename temporary file to output file
+mv "$3.tmp" "$3"
+echo "Conversion done!"
+```
+
+Then I used bedtools to retrieve the genes from the genomes. The script requires the paths to several files created in this tutorial which will vary based on your working directory. Furthermore, the `bedtools getfasta` command requires the path to the **softmasked genome** of each species.
+
+```bash
+conda activate bedtools
+
+#This is  for the cathelicidins but I just had to change the names of the subfamilies accordingly
+for i in $(cat bat_list_amps.txt)
+do
+./Gff3ToBed.sh "$i"_cathelicidins_headers.txt "$i".gff "$i"_cathelicidins_genes.bed
+bedtools getfasta -fi /path/to/softmasked/genome/"$i" -bed "$i"_cathelicidins_genes.bed -fo "$i"_cathelicidins_genes.fasta
+done
+```
+
+# Annotate proteins with defensin subfamilies
+
+The Interpro output doesn't exactly states which defensin subfamilies I may have retrieved, thus, I blasted the dataset I used to predict AMPs in ampir to get functional names of the proteins.
+
+First I have to copy the files to the directory and get rid of any prefix I gave to the `filtered.ampir.bats.maker.predicted.amps.fasta` file.
+
+```bash
+# Copy files I need for this pipeline
+cp /your/directory/to/filtered.ampir.bats.maker.predicted.amps.fasta .
+cp /your/directory/to/uniprot_potential_defens_cath_over6aas.fasta .
+
+# Delete prefixes
+for i in $(cat bat_list_amps.txt)
+do
+sed -i "s/^>defa_"$i"_\|^>defb_"$i"_\|^>cath_"$i"_/>/g" filtered.ampir.bats.maker.predicted.amps.fasta
+done
+```
+Then I blasted the potential amps file from UNIPROT that I have been using.
+
+```bash
+#Create database before blasting
+makeblastdb -in /lustre/scratch/frcastel/defensins/dataset/amplify/databases/UNIPROT/uniprot_potential_defens_cath_over6aas.fasta -dbtype prot -out uniprotdb
+
+#BLASTP
+blastp -query filtered.ampir.bats.maker.predicted.amps.fasta -db uniprotdb -evalue 1e-4 -max_hsps 1 -max_target_seqs 1 -outfmt 6 -out output.blastp
+```
+Then some looping to change the headers for the genes that were hits from BLAST.
+
+```bash
+for i in $(cat /lustre/scratch/frcastel/defensins/dataset/maker/bat_list_amps.txt)
+do
+echo "BLASTING $i"
+#Get gff for the species
+cp /lustre/scratch/frcastel/defensins/dataset/maker/"$i"/"$i".maker.output/"$i".gff .
+
+#Change headers
+maker_map_ids --prefix "$i" --justify 8 "$i".gff > "$i".contig.map
+
+map_fasta_ids "$i".contig.map filtered.ampir.bats.maker.predicted.amps.fasta
+#Get new header names for the species
+grep "$i" filtered.ampir.bats.maker.predicted.amps.fasta | sed "s/>//g" > "$i".headers.txt
+
+#Map blast results to the header
+map_data_ids "$i".contig.map output.blastp
+
+#Get hits from blast fot this species
+grep "$i" output.blastp | sed "s/|/\t/g" | sed "s/_/\t/g"  | cut -f1,4,6 | sed "s/\t/_/g" > "$i".hits.txt
+
+#Concatenate all the results
+cat "$i".hits.txt >> all.hits.txt
+
+#Remove some files
+rm "$i".gff "$i".contig.map "$i".headers.txt
+done
+```
+
+The result of this would be a change in the headers of the `filtered.ampir.bats.maker.predicted.amps.fasta` file. I moved the hits results to `/lustre/scratch/frcastel/defensins/dataset/cafe/blast_hits_bats/`
+
+After I annotated the headers with the gene names, I had to get the genes for the outgroup and do some cleaning for < 200 AAs and excluding non traditional aminoacids.
+
+
+```bash
+conda activate seqkit
+#Here I am filtering for the outgroups and get sequences using headers
+for FILE in $(ls /lustre/scratch/frcastel/defensins/dataset/outgroup_proteins/no_homo_mus/)
+do
+grep -i "taurus\|btaurus\|equus\|ecaballus\|scrofa\|sscrofa\|familiaris\|cfamiliaris" /lustre/scratch/frcastel/defensins/dataset/outgroup_proteins/no_homo_mus/$FILE >> outgroup_amps_headers.txt
+grep -i "taurus\|btaurus\|equus\|ecaballus\|scrofa\|sscrofa\|familiaris\|cfamiliaris" uniprot_potential_defens_cath_over6aas.fasta >> outgroup_amps_headers.txt
+sed -i "s/^>//g" outgroup_amps_headers.txt
+seqtk subseq /lustre/scratch/frcastel/defensins/dataset/outgroup_proteins/no_homo_mus/$FILE outgroup_amps_headers.txt >> outgroup_amps.fasta
+done
+
+seqtk subseq uniprot_potential_defens_cath_over6aas.fasta outgroup_amps_headers.txt >> outgroup_amps.fasta
+
+#Do some cleaning of the file with the mentioned criteria
+seqkit fx2tab outgroup_amps.fasta -l -i -H -C BJOUXZ | awk '{ if ($3 <= 200 && $4 < 1 ) {print $1 "\t" $2} }' | seqkit tab2fx | seqkit rmdup -s -o clean_outgroup_amps.fasta -D duplicated_outgroup_amps.txt
+
+#Merge bat amps with outgroups
+cat filtered.ampir.bats.maker.predicted.amps.fasta clean_outgroup_amps.fasta > outgroup_bats_amps.fasta
+
+```
+After the automatic cleaning I removed some "*" that were by the end of some ecaballus sequences only. I am reducing the complexity of the headers with some code:
+
+```bash
+sed -E 's/>([a-z]+)_\S+\|(DEF[^|]+).*/>\1_\2/' outgroup_bats_amps.fasta  > outgroup_bats_amps_edit_headers.fasta
+sed -i "s/_Paneth_cellspecific_alphadefensin/DEFA/g ; s/_precursor//g ; s/_alphadefensin_/DEFA_/g; s/_neutrophil_defensin/DEFA/g; s/_PE=.*//g; s/OX=[*]//g" outgroup_bats_amps_edit_headers.fasta
+```
+I also had to look for the AMPs names in some sequences that were not writen in the headers, mostly sequences of cow, dog and cow corresponding to cathelicidins.
+
+Also, since the changes of the `maker_map_id` get rid of the annotation of the somewhat informative headers, I am merging the results of the blast hits with the headers to make it more informative for downstream analyses.
+
+```bash
+# Change the headers in outgroup_bats_amps.fasta
+hits_file="all.hits.txt"
+fasta_file="outgroup_bats_amps_edit_headers.fasta"
+
+# Loop through each line in the hits file
+while read line; do
+    # Extract the sequence ID and desired header
+    seq_id=$(echo "$line" | cut -d"_" -f1)
+    header=$(echo "$line" | cut -d"_" -f2-)
+
+    # Use sed to replace the header in the fasta file
+    sed -i "s/^>$seq_id/>${seq_id}_${header}/" $fasta_file
+done < $hits_file
+```
+Final editing to the new headers, just for simplicity
+
+```bash
+sed -i "s/_Alpha-defensin//g ; s/_Defensin-.*//g ; s/_Beta-defensin//g ; s/_Cathel.*//g; s/_Defensin//g; s/_Putative//g; s/DB/DEFB/g; s/CAMP/CTHL/g; s/D103A/DEFB103A/g; s/DEF5/DEFA5/g" outgroup_bats_amps_edit_headers.fasta
+```
+I also did a manual search for the proteins that I manually separated from pdiscolor and acaudifer because since I added a "_dup" to the maker header, then they were not retrieved or recognized when I ran the loop to change the header's names. BLAST showed that both belonged to DEFB109 like proteins so I manually changed the header name to their species and DEFB, adding a "_dup" at the end of it.
+I also had to manually look for some sequences that did not have the AMP family in them:
+|Accession Number|NCBI ID |
+|----------------|--------|
+| XP_024838922.1| cathelicidin-1-like   |
+|XP_024839052.1|cathelicidin-4|
+|XP_020937599.1|protegrin-1|
+|NP_777250.1|cathelicidin-1 precursor|
+|NP_001123448.1|antibacterial peptide PMAP-23 precursor|
+|NP_001123437.1|antibacterial peptide PMAP-36 precursor|
+|NP_999615.1|antibacterial protein PR-39 precursor|
+|NP_777250.1|cathelicidin-1 precursor|
+|NP_777251.1|cathelicidin-2 precursor|
+|NP_776426.1|cathelicidin-3 precursor|
+|NP_776935.1|cathelicidin-5 precursor|
+|NP_777256.1|cathelicidin-7 precursor|
+|NP_777257.1|cathelicidin-6 precursor|
+|NP_001003359.1|cathelicidin antimicrobial peptide precursor|
+|NP_001075338.1|myeloid cathelicidin 2 precursor|
+|NP_001075399.1|myeloid cathelicidin 3 precursor|
+|NP_001116621.1|protegrin-1 precursor|
+|NP_001123438.1|protegrin-2 precursor|
+|NP_001116622.1|protegrin-3 precursor|
+
 # Citation (Under revision)
 
 If you use this code or any dataset click in "*Cite this repository*" at the top of this page to get the citation in APA and BibTeX formats.
