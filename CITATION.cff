@@ -20,10 +20,10 @@ preferred-citation:
     orcid: "https://orcid.org/0000-0000-0000-0000"
   doi: "10.0000/00000"
   journal: "Frontiers in Immunology"
-  month: x
-  start: xx # First page number
-  end: xx # Last page number
+  month: 1
+  start: 1 # First page number
+  end: 10 # Last page number
   title: "The evolution of antimicrobial peptides in Chiroptera"
-  issue: xx
-  volume: xx
+  issue: 1
+  volume: 1
   year: 2023
