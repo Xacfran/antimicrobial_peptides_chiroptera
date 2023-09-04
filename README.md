@@ -345,7 +345,7 @@ This file is found in the `fasta_files` folder under the name `predicted_bat_any
 
 ## All other AMPs
 
-First I got the files needed for this by getting the headers using the proteins that were predicted by ampir:
+First I obtained the headers of the proteins predicted by ampir:
 
 ```bash
 # Get tsv files of all the bats
@@ -365,7 +365,7 @@ I also got a list of AMP names from the APD3 database to compare with my results
 grep ">0" apd_and_vertebrates_AMPs.fasta | sed "s/|/\t/g ; s/(/\t/g; s/,/\t/g" | awk '{print $2}' | sort | uniq > list_of_APD3_amps_names.txt
 ```
 
-I wrote a script to obtain a `interpro.results.tsv` file that would allow me to get counts of any other AMP family per species, and to get rid of the ones that were not AMPs.
+Finally, I got rid of proteins that were not AMPs and counted predicted AMP families per species with the code below and saved it in the `interpro_results.tsv` file.
 
 ```bash
 for bat in $(cat bat_list_amps.txt)
@@ -373,9 +373,6 @@ do
 column -t -s $'\t' "$bat"/"$bat".maker.output/curated_"$bat"_proteins.tsv | grep -v MobiDBLite | grep -v PRINTS | awk '{print $1 "\t" $6 "\t" $7}' | sed "s/,//g"  | awk '{ if ($3 >= 0 ) {print $1 "\t" $2} }' | awk 'NR==1 {print $0}; NR>1 {if(cat[$1])cat[$1]=cat[$1]", "$2; else cat[$1]=$2;}; END{j=1; for (i in cat) print i, cat[i]}' | sed "s/^/"$bat"\t/g"  | sed "s/,/\t/g" | column -t -s $'\t' | awk '{print $1 "\t" $2 "\t" $3 "\t" $4}' >> interpro.results.tsv
 done
 ```
-# Citation
+# Citation (Under revision)
 
-If you use this code, please cite the following:
-
-Castellanos, F. X., Moreno-Santillan, D., Hughes, G.M., Paulat, N.S.,
-Sipperly, N., Brown, A., Martin, K., Poterewicz, G.M., Lim, M.C., Russell, A.L., Moore, M.S., Johnson, M., Corthals, A.P., Ray, D.A. and Dávalos, L.M. The evolution of antimicrobial peptides in Chiroptera. [Under revision].
+If you use this code or any dataset click in "*Cite this repository*" at the top of this page to get the citation in APA and BibTeX formats.
