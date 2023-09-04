@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+authors:
+  - family-names: Castellanos
+    given-names: Francisco
+    orcid: https://orcid.org/0000-0003-0955-8185
+title: "The evolution of antimicrobial peptides in Chiroptera"
+version: 0.1
+doi: 10.5281/zenodo.8144377 
+date-released: 2021-08-11
