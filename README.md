@@ -1,7 +1,7 @@
 [![DOI](https://zenodo.org/badge/660285082.svg)](https://zenodo.org/badge/latestdoi/660285082)
 
 # Antimicrobial Peptides Annotation and Prediction in Chiroptera
-This repository holds the code used to predict and annotate antimicrobial peptides in Chiroptera and identify gene gains/losses while also trying to characterize species-specific gene clusters. The principal resulting files are included in the `fasta_files` folder.
+This repository holds the code used to predict and annotate antimicrobial peptides in 20 species of the Order Chiroptera, and to identify gene gains/losses. The main resulting files of this pipeline are included in the `results` folder.
 
 This project attempts to get a better understanding of gene-family evolution of antimicrobial peptides, specifically the defensins (α and β) and cathelicidin families across the order Chiroptera.
 
@@ -253,7 +253,7 @@ done
 Then I concatenated all these files into a single `bats_all_other_amps.fasta` file for a final prediction round.
 
 # Final AMPs Prediction
-
+`
 ## Defensins and cathelicidins prediction
 
 To make the defensins/cathelicidins prediction of the proteins obtained in MAKER, I subsetted the potential amps dataset created [here](###Potential-AMPs-dataset), by only selecting the defensins and cathelicidins sequences first:
