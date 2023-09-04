@@ -18,6 +18,15 @@ This project attempts to get a better understanding of gene-family evolution of 
   - [Aligning AMPs precursors to the genomes with GMAP](##Aligning-AMPs-precursors-to-the-genomes-with-GMAP)
   - [MAKER2](##MAKER2)
 - [Functional Annotation](#functional-annotation)
+  - [Extract defensins and cathelicidins from Interpro annotation](##Extract-defensins-and-cathelicidins-from-Interpro-annotation)
+  - [Bat defensins/cathelicidins concatenation](##Bat-defensins/cathelicidins-concatenation)
+  - [Extract any other AMPs from Interpro annotation](##Extract-any-other-AMPs-from-Interpro-annotation)
+- [Final AMPs Prediction](#Final-AMPs-Prediction)
+  - [Defensins + cathelicidins prediction](##Defensins-+-cathelicidins-prediction)
+  - [Any other AMP prediction](##Any-other-AMP-prediction)
+- [Functional annotations stats](#Functional-annotations-stats)
+  - [All other AMPs](##All-other-AMPs)
+- [Citation](#Citation)
 
 # Ortholog identification in bat proteomes
 
@@ -185,7 +194,7 @@ TMP= #specify a directory other than the system default temporary directory for 
 
 # Functional annotation
 
-I used [interproscan](https://interproscan-docs.readthedocs.io/en/latest/Introduction.html) in a conda environment along with opendjk version 11 for this step. The `bat_list_amps.txt` in this section contains the acronyms for the species I am working with.
+I used [interproscan](https://interproscan-docs.readthedocs.io/en/latest/Introduction.html) in a conda environment along with opendjk version 11 for this step. The `bat_list_amps.txt` in this section contains the abbreviations for the species I am working with.
 
 ```bash
 conda activate interpro
@@ -196,7 +205,7 @@ interproscan.sh -i $i/"$i".maker.output/curated_"$i"_proteins.fasta -f tsv -dp -
 done
 ```
 
-## Extract defensins/cathelicidins from Interpro annotation
+## Extract defensins and cathelicidins from Interpro annotation
 Once Intepro was run, I extracted α-β defensins, and cathelicidins from the `curated_"$i"_proteins.tsv` that I got in the previous step:
 
 ```bash
@@ -247,7 +256,7 @@ Then I concatenated all these files into a single `bats_all_other_amps.fasta` fi
 
 ## Defensins + cathelicidins prediction
 
-To make the defensins/cathelicidins prediction of the proteins obained in MAKER, I subsetted the potential amps dataset created [here](###Potential-AMPs-dataset), by only selecting the defensins and cathelicidins sequences first:
+To make the defensins/cathelicidins prediction of the proteins obtained in MAKER, I subsetted the potential amps dataset created [here](###Potential-AMPs-dataset), by only selecting the defensins and cathelicidins sequences first:
 
 ```bash
 grep ">" uniprot_potential_amps.fasta | grep -i "cathel\|defens" | sed 's/>//g' > defens_cath_headers.txt && seqtk subseq uniprot_potential_amps.fasta defens_cath_headers.txt > uniprot_potential_defens_cath.fasta
@@ -257,7 +266,7 @@ And then I kept sequences greater than 6 AAs long:
 ```bash
 seqkit fx2tab uniprot_potential_defens_cath.fasta -l | awk '{ if ($3 >= 6 ) {print $1 "\t" $2} }' | seqkit tab2fx > uniprot_potential_defens_cath_over6aas.fasta
 ```
-Now, to obtain the lengths of the sequences for any dataset I used:
+Now, to obtain the lengths of the sequences in the datasets I used:
 
 ```bash
 seqkit fx2tab uniprot_potential_defens_cath_over6aas.fasta -l | awk '{print $1"\t"$3}' > uniprot_potential_defens_cath_over6aas_length.txt
@@ -332,7 +341,7 @@ df_to_faa(filtered_all_other_amps_mature, "filtered.ampir.bats.all.other.amps.fa
 ```
 This file is found in the `fasta_files` folder under the name `predicted_bat_any_other_AMP.fasta`.
 
-# Count interpro functional annotations
+# Functional annotations stats
 
 ## All other AMPs
 
@@ -342,12 +351,11 @@ First I got the files needed for this by getting the headers using the proteins 
 # Get tsv files of all the bats
 for bat in $(cat bat_list_amps.txt)
 do
-grep ">${bat}" final_datasets/filtered.ampir.bats.all.other.amps.fasta | sed "s/>${bat}_//g" | awk '{print $1}' >> functional_annotation/filtered.ampir.bats.all.other.amps.headers.txt
-awk -v species="$bat" '{print species "\t" $0}' /lustre/scratch/frcastel/defensins/dataset/maker/"$bat"/"$bat".maker.output/curated_"$bat"_proteins.tsv >> functional_annotation/bats_curated_proteins.tsv
+grep ">${bat}" filtered.ampir.bats.all.other.amps.fasta | sed "s/>${bat}_//g" | awk '{print $1}' >> filtered.ampir.bats.all.other.amps.headers.txt
+awk -v species="$bat" '{print species "\t" $0}' "$bat"/"$bat".maker.output/curated_"$bat"_proteins.tsv >> bats_curated_proteins.tsv
 done
 
 #Get the annotations for the predicted proteins
-cd functional_annotation/
 grep -Fwf filtered.ampir.bats.all.other.amps.headers.txt bats_curated_proteins.tsv > all_other_amps_functional_annotation.tsv
 ```
 
@@ -365,3 +373,9 @@ do
 column -t -s $'\t' "$bat"/"$bat".maker.output/curated_"$bat"_proteins.tsv | grep -v MobiDBLite | grep -v PRINTS | awk '{print $1 "\t" $6 "\t" $7}' | sed "s/,//g"  | awk '{ if ($3 >= 0 ) {print $1 "\t" $2} }' | awk 'NR==1 {print $0}; NR>1 {if(cat[$1])cat[$1]=cat[$1]", "$2; else cat[$1]=$2;}; END{j=1; for (i in cat) print i, cat[i]}' | sed "s/^/"$bat"\t/g"  | sed "s/,/\t/g" | column -t -s $'\t' | awk '{print $1 "\t" $2 "\t" $3 "\t" $4}' >> interpro.results.tsv
 done
 ```
+# Citation
+
+If you use this code, please cite the following:
+
+Castellanos, F. X., Moreno-Santillan, D., Hughes, G.M., Paulat, N.S.,
+Sipperly, N., Brown, A., Martin, K., Poterewicz, G.M., Lim, M.C., Russell, A.L., Moore, M.S., Johnson, M., Corthals, A.P., Ray, D.A. and Dávalos, L.M. The evolution of antimicrobial peptides in Chiroptera. [Under revision].
