@@ -22,7 +22,7 @@ This project attempts to get a better understanding of gene-family evolution of 
   - [Bat defensins/cathelicidins concatenation](#Bat-defensins/cathelicidins-concatenation)
   - [Extract any other AMPs from Interpro annotation](#Extract-any-other-AMPs-from-Interpro-annotation)
 - [Final AMPs Prediction](#Final-AMPs-Prediction)
-  - [Defensins + cathelicidins prediction](#Defensins-+-cathelicidins-prediction)
+  - [Defensins and cathelicidins prediction](#Defensins-and-cathelicidins-prediction)
   - [Any other AMP prediction](#Any-other-AMP-prediction)
 - [Functional annotations stats](#Functional-annotations-stats)
   - [All other AMPs](#All-other-AMPs)
@@ -254,7 +254,7 @@ Then I concatenated all these files into a single `bats_all_other_amps.fasta` fi
 
 # Final AMPs Prediction
 
-## Defensins + cathelicidins prediction
+## Defensins and cathelicidins prediction
 
 To make the defensins/cathelicidins prediction of the proteins obtained in MAKER, I subsetted the potential amps dataset created [here](###Potential-AMPs-dataset), by only selecting the defensins and cathelicidins sequences first:
 
