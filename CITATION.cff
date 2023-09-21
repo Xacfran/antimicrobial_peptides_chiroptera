@@ -44,12 +44,9 @@ preferred-citation:
     given-names: David A.
   - family-names: Davalos
     given-names: Liliana M.
-  doi: "10.0000/00000"
+  doi: "10.3389/fimmu.2023.1250229"
   journal: "Frontiers in Immunology"
-  month: 1
-  start: 1 # First page number
-  end: 10 # Last page number
+  start: 1250229 # First page number
   title: "The evolution of antimicrobial peptides in Chiroptera"
-  issue: 1
-  volume: 1
+  issue: 14
   year: 2023

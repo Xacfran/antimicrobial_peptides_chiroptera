@@ -603,6 +603,8 @@ I also had to manually look for some sequences that did not have the AMP family 
 |NP_001123438.1|protegrin-2 precursor|
 |NP_001116622.1|protegrin-3 precursor|
 
-# Citation (Under revision)
+# Citation
 
-If you use this code or any dataset click in "*Cite this repository*" at the top of this page to get the citation in APA and BibTeX formats.
+If you use this code or any dataset please cite: Castellanos FX, Moreno-Santillán D, Hughes GM, Paulat NS, Sipperly N, Brown AM, Martin KR, Poterewicz GM, Lim MCW, Russell AL, Moore MS, Johnson MG, Corthals AP, Ray DA and Da´ valos LM (2023) The evolution of antimicrobial peptides in Chiroptera. Front. Immunol. 14:1250229. doi: 10.3389/fimmu.2023.1250229
+
+Alternatively, click in "*Cite this repository*" at the top of this page to get the citation in APA and BibTeX formats.
