@@ -1,9 +1,9 @@
 [![DOI](https://zenodo.org/badge/660285082.svg)](https://zenodo.org/badge/latestdoi/660285082)
 
 # Antimicrobial Peptides Annotation and Prediction in Chiroptera
-This repository holds the code used to predict and annotate antimicrobial peptides in 20 species of the Order Chiroptera, and to identify gene gains/losses. The main resulting files of this pipeline are included in the `results` folder.
 
-This project attempts to get a better understanding of gene-family evolution of antimicrobial peptides, specifically the defensins (α and β) and cathelicidin families across the order Chiroptera.
+This project attempts to get a better understanding of the gene-family evolution of antimicrobial peptides, specifically the defensin and cathelicidin families across 20 species representing six chiropteran families. The results of this pipeline have been published in [this article](https://www.frontiersin.org/articles/10.3389/fimmu.2023.1250229). Here, you will find the code used to predict and annotate antimicrobial peptides, and to identify gene gains/losses. The main resulting files of this pipeline are included in the `results` folder.
+
 
 # Table of Contents
 
@@ -607,4 +607,4 @@ I also had to manually look for some sequences that did not have the AMP family 
 
 If you use this code or any dataset please cite: Castellanos FX, Moreno-Santillán D, Hughes GM, Paulat NS, Sipperly N, Brown AM, Martin KR, Poterewicz GM, Lim MCW, Russell AL, Moore MS, Johnson MG, Corthals AP, Ray DA and Da´ valos LM (2023) The evolution of antimicrobial peptides in Chiroptera. Front. Immunol. 14:1250229. doi: 10.3389/fimmu.2023.1250229
 
-Alternatively, click in "*Cite this repository*" at the top of this page to get the citation in APA and BibTeX formats.
+If you use this code or any dataset click in "*Cite this repository*" at the top of this page to get the citation in APA and BibTeX formats.
