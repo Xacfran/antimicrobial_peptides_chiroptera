@@ -211,6 +211,19 @@ clean_try=0 #remove all data from previous run before retrying, 1 = yes, 0 = no
 clean_up=0 #removes theVoid directory with individual analysis files, 1 = yes, 0 = no
 TMP= #specify a directory other than the system default temporary directory for temporary files
 ```
+### Filtering MAKER results
+
+To filter sequences with non-standard amino acids and lengths longer than 200 amino acids I used seqkit.   
+
+```bash
+#Conda environment 
+conda activate seqkit
+#bat_list_amps.txt contains the acronyms for the species i am using
+for i in $(cat bat_list_amps.txt)
+do
+seqkit fx2tab "$i"/"$i".maker.output/"$i".all.maker.proteins.fasta -i -H -C BJOUXZ | grep -v "*" | awk '{ if ($3 < 1 ) {print} }' | seqkit tab2fx | seqkit fx2tab -l -i -H -C C | awk '{ if ($3 >= 10 && $3 <= 200 ) {print} }' | seqkit tab2fx > "$i"/"$i".maker.output/curated_"$i"_proteins.fasta
+done
+```
 
 # Functional annotation
 
@@ -489,7 +502,7 @@ Then I blasted the potential amps file from UNIPROT that I have been using.
 
 ```bash
 #Create database before blasting
-makeblastdb -in /lustre/scratch/frcastel/defensins/dataset/amplify/databases/UNIPROT/uniprot_potential_defens_cath_over6aas.fasta -dbtype prot -out uniprotdb
+makeblastdb -in /your/directory/to/uniprot_potential_defens_cath_over6aas.fasta -dbtype prot -out uniprotdb
 
 #BLASTP
 blastp -query filtered.ampir.bats.maker.predicted.amps.fasta -db uniprotdb -evalue 1e-4 -max_hsps 1 -max_target_seqs 1 -outfmt 6 -out output.blastp
@@ -497,26 +510,25 @@ blastp -query filtered.ampir.bats.maker.predicted.amps.fasta -db uniprotdb -eval
 Then some looping to change the headers for the genes that were hits from BLAST.
 
 ```bash
-for i in $(cat /lustre/scratch/frcastel/defensins/dataset/maker/bat_list_amps.txt)
+for i in $(cat bat_list_amps.txt)
 do
-echo "BLASTING $i"
-#Get gff for the species
-cp /lustre/scratch/frcastel/defensins/dataset/maker/"$i"/"$i".maker.output/"$i".gff .
+# Get gff for the species
+cp /your/directory/to/maker/"$i"/"$i".maker.output/"$i".gff .
 
-#Change headers
+# Change headers
 maker_map_ids --prefix "$i" --justify 8 "$i".gff > "$i".contig.map
 
 map_fasta_ids "$i".contig.map filtered.ampir.bats.maker.predicted.amps.fasta
-#Get new header names for the species
+# Get new header names for the species
 grep "$i" filtered.ampir.bats.maker.predicted.amps.fasta | sed "s/>//g" > "$i".headers.txt
 
-#Map blast results to the header
+# Map blast results to the header
 map_data_ids "$i".contig.map output.blastp
 
-#Get hits from blast fot this species
+# Get hits from blast fot this species
 grep "$i" output.blastp | sed "s/|/\t/g" | sed "s/_/\t/g"  | cut -f1,4,6 | sed "s/\t/_/g" > "$i".hits.txt
 
-#Concatenate all the results
+# Concatenate all the results
 cat "$i".hits.txt >> all.hits.txt
 
 #Remove some files
@@ -524,32 +536,30 @@ rm "$i".gff "$i".contig.map "$i".headers.txt
 done
 ```
 
-The result of this would be a change in the headers of the `filtered.ampir.bats.maker.predicted.amps.fasta` file. I moved the hits results to `/lustre/scratch/frcastel/defensins/dataset/cafe/blast_hits_bats/`
-
-After I annotated the headers with the gene names, I had to get the genes for the outgroup and do some cleaning for < 200 AAs and excluding non traditional aminoacids.
+The result of this would be a change in the headers of the `filtered.ampir.bats.maker.predicted.amps.fasta` file. After I annotated the headers with the gene names, I had to get the genes for the outgroup and do some cleaning for < 200 AAs and excluding non traditional aminoacids.
 
 
 ```bash
 conda activate seqkit
-#Here I am filtering for the outgroups and get sequences using headers
-for FILE in $(ls /lustre/scratch/frcastel/defensins/dataset/outgroup_proteins/no_homo_mus/)
+# Here I am filtering for the outgroups and get sequences using headers
+for FILE in $(ls /path/to/outgroup_proteins/)
 do
-grep -i "taurus\|btaurus\|equus\|ecaballus\|scrofa\|sscrofa\|familiaris\|cfamiliaris" /lustre/scratch/frcastel/defensins/dataset/outgroup_proteins/no_homo_mus/$FILE >> outgroup_amps_headers.txt
+grep -i "taurus\|btaurus\|equus\|ecaballus\|scrofa\|sscrofa\|familiaris\|cfamiliaris" /path/to/outgroup_proteins/$FILE >> outgroup_amps_headers.txt
 grep -i "taurus\|btaurus\|equus\|ecaballus\|scrofa\|sscrofa\|familiaris\|cfamiliaris" uniprot_potential_defens_cath_over6aas.fasta >> outgroup_amps_headers.txt
 sed -i "s/^>//g" outgroup_amps_headers.txt
-seqtk subseq /lustre/scratch/frcastel/defensins/dataset/outgroup_proteins/no_homo_mus/$FILE outgroup_amps_headers.txt >> outgroup_amps.fasta
+seqtk subseq /path/to/outgroup_proteins/$FILE outgroup_amps_headers.txt >> outgroup_amps.fasta
 done
 
 seqtk subseq uniprot_potential_defens_cath_over6aas.fasta outgroup_amps_headers.txt >> outgroup_amps.fasta
 
-#Do some cleaning of the file with the mentioned criteria
+# Do some cleaning of the file with the mentioned criteria
 seqkit fx2tab outgroup_amps.fasta -l -i -H -C BJOUXZ | awk '{ if ($3 <= 200 && $4 < 1 ) {print $1 "\t" $2} }' | seqkit tab2fx | seqkit rmdup -s -o clean_outgroup_amps.fasta -D duplicated_outgroup_amps.txt
 
-#Merge bat amps with outgroups
+# Merge bat amps with outgroups
 cat filtered.ampir.bats.maker.predicted.amps.fasta clean_outgroup_amps.fasta > outgroup_bats_amps.fasta
 
 ```
-After the automatic cleaning I removed some "*" that were by the end of some ecaballus sequences only. I am reducing the complexity of the headers with some code:
+After the automatic cleaning I removed some "*" that were by the end of some _Equus caballus_ sequences only. I am reducing the complexity of the headers with some code:
 
 ```bash
 sed -E 's/>([a-z]+)_\S+\|(DEF[^|]+).*/>\1_\2/' outgroup_bats_amps.fasta  > outgroup_bats_amps_edit_headers.fasta
@@ -579,8 +589,9 @@ Final editing to the new headers, just for simplicity
 ```bash
 sed -i "s/_Alpha-defensin//g ; s/_Defensin-.*//g ; s/_Beta-defensin//g ; s/_Cathel.*//g; s/_Defensin//g; s/_Putative//g; s/DB/DEFB/g; s/CAMP/CTHL/g; s/D103A/DEFB103A/g; s/DEF5/DEFA5/g" outgroup_bats_amps_edit_headers.fasta
 ```
-I also did a manual search for the proteins that I manually separated from pdiscolor and acaudifer because since I added a "_dup" to the maker header, then they were not retrieved or recognized when I ran the loop to change the header's names. BLAST showed that both belonged to DEFB109 like proteins so I manually changed the header name to their species and DEFB, adding a "_dup" at the end of it.
-I also had to manually look for some sequences that did not have the AMP family in them:
+I also did a manual search for the proteins that I manually separated from _Phyllostomus discolor_ and _Anoura caudifer_ because I added a "_dup" to the header, and they were not retrieved or recognized when I ran the loop to change the header's names. 
+BLAST showed that both belonged to DEFB109 like proteins so I manually changed the header name to their species and DEFB, adding a "_dup" at the end of it. I also had to manually look for some sequences that did not have the AMP family in them.
+
 |Accession Number|NCBI ID |
 |----------------|--------|
 | XP_024838922.1| cathelicidin-1-like   |
@@ -603,6 +614,93 @@ I also had to manually look for some sequences that did not have the AMP family 
 |NP_001123438.1|protegrin-2 precursor|
 |NP_001116622.1|protegrin-3 precursor|
 
+# Families expansions and contractions
+
+## Orthofinder
+
+Before running Orthofinder I had to separate the AMPs in `outgroup_bats_amps_edit_headers.fasta` into individual species files, including the outgroups.
+
+```bash
+for i in $(cat bat_list_amps.txt)
+do
+
+# Get species headers
+grep "$i" outgroup_bats_amps_edit_headers.fasta >> ${i}_amps_headers.txt
+sed -i "s/^>//g" ${i}_amps_headers.txt
+
+# Get sequence
+seqtk subseq outgroup_bats_amps_edit_headers.fasta ${i}_amps_headers.txt >> ${i}.fasta
+rm ${i}_amps_headers.txt
+done
+
+#I did the same for the outgroups, however, I had to remove duplicates because, since the headers for the outgroups are similar, seqtk has difficulty in retrieving the fasta files.
+```
+
+Afterwards I ran Orthofinder within a conda environment.
+
+```bash
+orthofinder -f . -t 2 -s ultrametric_tree_gh2023.tre -M msa
+```
+The results to be used for CAFE are within the `Phylogenetic_Hierarchical_Orthogroups` directory and I used the `N0.tsv` file. I did not find a way to edit the file automatically so that it can be read by `mcl2rawcafe.py` later. The manually edited file is in the `results` folder of this repository under the name `hierarchical_orthogroups_edited.tsv`.
+
+## CAFE
+
+The `hierarchical_orthogroups_edited.tsv` was transformed using `mcl2rawcafe.py`.
+
+```bash
+python /path/to/cafe/mcl2rawcafe.py -i hierarchical_orthogroups_edited.tsv -o unfiltered_hierarchical_input.txt -sp "acaudifer ajamaicensis btaurus clfamiliaris drotundus ecaballus efuscus mbrandtii mdavidii mlucifugus mmolossus mmyotis mnatalensis mschreibersii msobrinus palecto pdiscolor pvampyrus raegyptiacus rferrumequinum rsinicus shondurensis sscrofa tsaurophila"
+```
+Then, two approaches were used to pick the best model. In both cases, cafe runs were done 30 times to check for the convergence of the Model Base Final Likelihood (-lnL). The highest -lnL amongst all runs was picked by checking the `model_results` to be submitted to a LRT. 
+
+### Among gene family variation with a discrete gamma model 
+
+I picked three categories, K = 2, 3, and 5.
+
+```bash
+for i in {1..30}
+do
+cafe5 -i unfiltered_hierarchical_input.txt -t ultrametric_tree_gh2023.tre -e -k 2 -o results_gamma_two_"$i"
+done
+```
+
+### Multi-λ model with two different birth-death parameters
+
+
+For this I manually added 3 and 5 lambdas using as a guide the example of the `chimphuman_separate_lambda.txt:` in the [CAFE Github repository](https://github.com/hahnlab/CAFE5).
+
+Thus both of the trees written in individual files looked like:
+
+```
+# lambda = 3
+((((mmolossus:3,((mschreibersii:3,mnatalensis:3):3,(((mbrandtii:3,mlucifugus:3):3,(mmyotis:3,mdavidii:3):3):3,efuscus:3):3):3):3,((((shondurensis:2,ajamaicensis:2):2,(pdiscolor:2,tsaurophila:2):2):2,acaudifer:2):2,drotundus:2):2):3,((((pvampyrus:3,palecto:3):3,raegyptiacus:3):3,msobrinus:3):3,(rsinicus:3,rferrumequinum:3):3):3):1,(((btaurus:1,sscrofa:1):1,ecaballus:1):1,clfamiliaris:1):1);
+# lambda = 5
+((((mmolossus:3,((mschreibersii:3,mnatalensis:3):3,(((mbrandtii:3,mlucifugus:3):3,(mmyotis:3,mdavidii:3):3):3,efuscus:3):3):3):3,((((shondurensis:2,ajamaicensis:2):2,(pdiscolor:2,tsaurophila:2):2):2,acaudifer:2):2,drotundus:2):2):4,((((pvampyrus:5,palecto:5):5,raegyptiacus:5):5,msobrinus:5):5,(rsinicus:5,rferrumequinum:5):5):4):1,(((btaurus:1,sscrofa:1):1,ecaballus:1):1,clfamiliaris:1):1);
+```
+
+This was used in CAFE5 as:
+
+```bash
+for i in {1..30}
+do
+cafe5 -i unfiltered_hierarchical_input.txt -t ultrametric_tree_gh2023.tre -y ultrametric_tree_lambda_five_gh2023.txt -e -o results_lambda_five_"$i"
+done
+```
+
+## Likelihood ratio test (LRT)
+
+To test which of the two models with highest -lnLs performed better I used R.
+ 
+```r
+# Obtain the log-likelihoods of each model
+logLik1 <- highest_lnl_lambda_comparison
+logLik2 <- highest_lnl_k_comparison
+
+# Calculate the log-likelihood ratio
+LRT <- -2*(logLik1 - logLik2)
+
+# Calculate the p-value of the LRT
+pval <- pchisq(LRT, df = (5 - 3), lower.tail = FALSE)
+```
 # Citation
 
 If you use this code or any dataset please cite: Castellanos FX, Moreno-Santillán D, Hughes GM, Paulat NS, Sipperly N, Brown AM, Martin KR, Poterewicz GM, Lim MCW, Russell AL, Moore MS, Johnson MG, Corthals AP, Ray DA and Da´ valos LM (2023) The evolution of antimicrobial peptides in Chiroptera. Front. Immunol. 14:1250229. doi: 10.3389/fimmu.2023.1250229
