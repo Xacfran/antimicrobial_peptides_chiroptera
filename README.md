@@ -7,32 +7,40 @@ This project attempts to get a better understanding of the gene-family evolution
 
 # Table of Contents
 
-- [Software requirements](#Software-requirements)
-- [Ortholog identification in bat proteomes](#Ortholog-identification-in-bat-proteomes)
-- [AMP probability estimation](#AMP-probability-estimation)
-- [Gene search in genomes](#Gene-search-in-genomes)
-  - [The AMPlify Pipeline](#The-AMPlify-Pipeline)
-  - [Databases](#Databases)
-    - [Positive training set](#Positive-training-set)
-    - [Negative training set](#Negative-training-set)
-    - [Potential AMPS](#Potential-AMPs-dataset)
-  - [Aligning AMPs precursors to the genomes with GMAP](#Aligning-AMPs-precursors-to-the-genomes-with-GMAP)
-  - [MAKER2](#MAKER2)
-- [Functional Annotation](#functional-annotation)
-  - [Extract defensins and cathelicidins from Interpro annotation](#Extract-defensins-and-cathelicidins-from-Interpro-annotation)
-  - [Bat defensins/cathelicidins concatenation](#Bat-defensins/cathelicidins-concatenation)
-  - [Extract any other AMPs from Interpro annotation](#Extract-any-other-AMPs-from-Interpro-annotation)
-- [Final AMPs Prediction](#Final-AMPs-Prediction)
-  - [Defensins and cathelicidins prediction](#Defensins-and-cathelicidins-prediction)
-  - [Any other AMP prediction](#Any-other-AMP-prediction)
-- [Functional annotations stats](#Functional-annotations-stats)
-  - [All other AMPs](#All-other-AMPs)
-- [Extract genes from gffs](#Extract-genes-from-gffs)
-  - [Overview stats of genes](#Overview-stats-of-genes)
-  - [Extract genes](#Extract-genes)
-- [Annotate proteins with defensin subfamilies](#Annotate-proteins-with-defensin-subfamilies)
-
-- [Citation](#Citation)
+- [Antimicrobial Peptides Annotation and Prediction in Chiroptera](#antimicrobial-peptides-annotation-and-prediction-in-chiroptera)
+- [Table of Contents](#table-of-contents)
+- [Software requirements](#software-requirements)
+- [Ortholog identification in bat proteomes](#ortholog-identification-in-bat-proteomes)
+- [AMP probability estimation](#amp-probability-estimation)
+- [GENE SEARCH IN GENOMES](#gene-search-in-genomes)
+  - [The AMPlify Pipeline](#the-amplify-pipeline)
+  - [Databases](#databases)
+    - [Positive training set](#positive-training-set)
+    - [Negative training set](#negative-training-set)
+    - [Potential AMPs dataset](#potential-amps-dataset)
+  - [Aligning AMPs precursors to the genomes with GMAP](#aligning-amps-precursors-to-the-genomes-with-gmap)
+  - [MAKER2](#maker2)
+    - [Filtering MAKER results](#filtering-maker-results)
+- [Functional annotation](#functional-annotation)
+  - [Extract defensins and cathelicidins from Interpro annotation](#extract-defensins-and-cathelicidins-from-interpro-annotation)
+  - [Bat defensins/cathelicidins concatenation](#bat-defensinscathelicidins-concatenation)
+  - [Extract any other AMPs from Interpro annotation](#extract-any-other-amps-from-interpro-annotation)
+- [Final AMPs Prediction](#final-amps-prediction)
+  - [Defensins and cathelicidins prediction](#defensins-and-cathelicidins-prediction)
+  - [Any other AMP prediction](#any-other-amp-prediction)
+- [Functional annotations stats](#functional-annotations-stats)
+  - [All other AMPs](#all-other-amps)
+- [Extract genes from gffs](#extract-genes-from-gffs)
+  - [Overview stats of genes](#overview-stats-of-genes)
+  - [Extract genes](#extract-genes)
+- [Annotate proteins with defensin subfamilies](#annotate-proteins-with-defensin-subfamilies)
+- [Families expansions and contractions](#families-expansions-and-contractions)
+  - [OrthoFinder](#orthofinder)
+  - [CAFE5](#cafe5)
+    - [Among gene family variation with a discrete gamma model](#among-gene-family-variation-with-a-discrete-gamma-model)
+    - [Multi-λ model with two different birth-death parameters](#multi-λ-model-with-two-different-birth-death-parameters)
+  - [Likelihood ratio test (LRT)](#likelihood-ratio-test-lrt)
+- [Citation](#citation)
 
 # Software requirements
 
@@ -42,6 +50,8 @@ You should have the following software installed in your system:
 - [GMAP](http://research-pub.gene.com/gmap/)
 - [orthofisher](https://jlsteenwyk.com/orthofisher/install/index.html)
 - [Interproscan](https://interproscan-docs.readthedocs.io/en/latest/Introduction.html)
+- [OrthoFinder](https://github.com/davidemms/OrthoFinder)
+- [CAFE5](https://github.com/hahnlab/CAFE5)
 - [seqkit](https://bioinf.shenwei.me/seqkit/)
 - [seqtk](https://github.com/lh3/seqtk)
 - [bedtools](https://bedtools.readthedocs.io/en/latest/)
@@ -213,10 +223,10 @@ TMP= #specify a directory other than the system default temporary directory for 
 ```
 ### Filtering MAKER results
 
-To filter sequences with non-standard amino acids and lengths longer than 200 amino acids I used seqkit.   
+To filter sequences with non-standard amino acids and lengths longer than 200 amino acids I used seqkit.
 
 ```bash
-#Conda environment 
+#Conda environment
 conda activate seqkit
 #bat_list_amps.txt contains the acronyms for the species i am using
 for i in $(cat bat_list_amps.txt)
@@ -589,7 +599,7 @@ Final editing to the new headers, just for simplicity
 ```bash
 sed -i "s/_Alpha-defensin//g ; s/_Defensin-.*//g ; s/_Beta-defensin//g ; s/_Cathel.*//g; s/_Defensin//g; s/_Putative//g; s/DB/DEFB/g; s/CAMP/CTHL/g; s/D103A/DEFB103A/g; s/DEF5/DEFA5/g" outgroup_bats_amps_edit_headers.fasta
 ```
-I also did a manual search for the proteins that I manually separated from _Phyllostomus discolor_ and _Anoura caudifer_ because I added a "_dup" to the header, and they were not retrieved or recognized when I ran the loop to change the header's names. 
+I also did a manual search for the proteins that I manually separated from _Phyllostomus discolor_ and _Anoura caudifer_ because I added a "_dup" to the header, and they were not retrieved or recognized when I ran the loop to change the header's names.
 BLAST showed that both belonged to DEFB109 like proteins so I manually changed the header name to their species and DEFB, adding a "_dup" at the end of it. I also had to manually look for some sequences that did not have the AMP family in them.
 
 |Accession Number|NCBI ID |
@@ -616,7 +626,7 @@ BLAST showed that both belonged to DEFB109 like proteins so I manually changed t
 
 # Families expansions and contractions
 
-## Orthofinder
+## OrthoFinder
 
 Before running Orthofinder I had to separate the AMPs in `outgroup_bats_amps_edit_headers.fasta` into individual species files, including the outgroups.
 
@@ -643,16 +653,16 @@ orthofinder -f . -t 2 -s ultrametric_tree_gh2023.tre -M msa
 ```
 The results to be used for CAFE are within the `Phylogenetic_Hierarchical_Orthogroups` directory and I used the `N0.tsv` file. I did not find a way to edit the file automatically so that it can be read by `mcl2rawcafe.py` later. The manually edited file is in the `results` folder of this repository under the name `hierarchical_orthogroups_edited.tsv`.
 
-## CAFE
+## CAFE5
 
 The `hierarchical_orthogroups_edited.tsv` was transformed using `mcl2rawcafe.py`.
 
 ```bash
 python /path/to/cafe/mcl2rawcafe.py -i hierarchical_orthogroups_edited.tsv -o unfiltered_hierarchical_input.txt -sp "acaudifer ajamaicensis btaurus clfamiliaris drotundus ecaballus efuscus mbrandtii mdavidii mlucifugus mmolossus mmyotis mnatalensis mschreibersii msobrinus palecto pdiscolor pvampyrus raegyptiacus rferrumequinum rsinicus shondurensis sscrofa tsaurophila"
 ```
-Then, two approaches were used to pick the best model. In both cases, cafe runs were done 30 times to check for the convergence of the Model Base Final Likelihood (-lnL). The highest -lnL amongst all runs was picked by checking the `model_results` to be submitted to a LRT. 
+Then, two approaches were used to pick the best model. In both cases, cafe runs were done 30 times to check for the convergence of the Model Base Final Likelihood (-lnL). The highest -lnL amongst all runs was picked by checking the `model_results` to be submitted to a LRT.
 
-### Among gene family variation with a discrete gamma model 
+### Among gene family variation with a discrete gamma model
 
 I picked three categories, K = 2, 3, and 5.
 
@@ -666,7 +676,7 @@ done
 ### Multi-λ model with two different birth-death parameters
 
 
-For this I manually added 3 and 5 lambdas using as a guide the example of the `chimphuman_separate_lambda.txt:` in the [CAFE Github repository](https://github.com/hahnlab/CAFE5).
+For this I manually added 3 and 5 lambdas using as a guide the example of the `chimphuman_separate_lambda.txt:` in the [CAFE5 Github repository](https://github.com/hahnlab/CAFE5).
 
 Thus both of the trees written in individual files looked like:
 
@@ -689,7 +699,7 @@ done
 ## Likelihood ratio test (LRT)
 
 To test which of the two models with highest -lnLs performed better I used R.
- 
+
 ```r
 # Obtain the log-likelihoods of each model
 logLik1 <- highest_lnl_lambda_comparison
