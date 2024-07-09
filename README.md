@@ -10,8 +10,8 @@ This project attempts to get a better understanding of the gene-family evolution
 - [Antimicrobial Peptides Annotation and Prediction in Chiroptera](#antimicrobial-peptides-annotation-and-prediction-in-chiroptera)
 - [Table of Contents](#table-of-contents)
 - [Software requirements](#software-requirements)
-- [Ortholog identification in bat proteomes](#ortholog-identification-in-bat-proteomes)
-- [AMP probability estimation](#amp-probability-estimation)
+- [ORTHOLOG IDENTIFICATION IN BAT PROTEOMES](#ortholog-identification-in-bat-proteomes)
+- [AMP PROBABILITY ESTIMATION](#amp-probability-estimation)
 - [GENE SEARCH IN GENOMES](#gene-search-in-genomes)
   - [The AMPlify Pipeline](#the-amplify-pipeline)
   - [Databases](#databases)
@@ -21,25 +21,26 @@ This project attempts to get a better understanding of the gene-family evolution
   - [Aligning AMPs precursors to the genomes with GMAP](#aligning-amps-precursors-to-the-genomes-with-gmap)
   - [MAKER2](#maker2)
     - [Filtering MAKER results](#filtering-maker-results)
-- [Functional annotation](#functional-annotation)
+- [FUNCTIONAL ANNOTATION](#functional-annotation)
   - [Extract defensins and cathelicidins from Interpro annotation](#extract-defensins-and-cathelicidins-from-interpro-annotation)
   - [Bat defensins/cathelicidins concatenation](#bat-defensinscathelicidins-concatenation)
   - [Extract any other AMPs from Interpro annotation](#extract-any-other-amps-from-interpro-annotation)
-- [Final AMPs Prediction](#final-amps-prediction)
+- [FINAL AMPS PREDICTION](#final-amps-prediction)
   - [Defensins and cathelicidins prediction](#defensins-and-cathelicidins-prediction)
   - [Any other AMP prediction](#any-other-amp-prediction)
-- [Functional annotations stats](#functional-annotations-stats)
+- [PREDICTED PROTEIN COUNTS](#predicted-protein-counts)
   - [All other AMPs](#all-other-amps)
-- [Extract genes from gffs](#extract-genes-from-gffs)
+- [EXTRACT GENES FROM gffs](#extract-genes-from-gffs)
   - [Overview stats of genes](#overview-stats-of-genes)
   - [Extract genes](#extract-genes)
-- [Annotate proteins with defensin subfamilies](#annotate-proteins-with-defensin-subfamilies)
-- [Families expansions and contractions](#families-expansions-and-contractions)
+- [ANNOTATE PROTEINS WITH DEFENSINS SUBFAMILIES](#annotate-proteins-with-defensins-subfamilies)
+- [FAMILIES EXPANSIONS AND CONTRACTIONS](#families-expansions-and-contractions)
   - [OrthoFinder](#orthofinder)
   - [CAFE5](#cafe5)
     - [Among gene family variation with a discrete gamma model](#among-gene-family-variation-with-a-discrete-gamma-model)
     - [Multi-λ model with two different birth-death parameters](#multi-λ-model-with-two-different-birth-death-parameters)
   - [Likelihood ratio test (LRT)](#likelihood-ratio-test-lrt)
+- [PLOTTING](#plotting)
 - [Citation](#citation)
 
 # Software requirements
@@ -59,7 +60,7 @@ You should have the following software installed in your system:
 The installation of MAKER2 and its dependencies is explained in the [MAKER2 documentation](http://www.yandell-lab.org/software/maker.html). The installation of GMAP is detailed [here](https://github.com/juliangehring/GMAP-GSNAP).
 The rest of the software can be installed using [conda](https://docs.conda.io/en/latest/) environments.
 
-# Ortholog identification in bat proteomes
+# ORTHOLOG IDENTIFICATION IN BAT PROTEOMES
 
 Search was done using [orthofisher](https://jlsteenwyk.com/orthofisher/), which initiaties a HMMER search and further incorporates a best-hit BUSCO pipeline. DEFAs with e-values < 0.001 and 80% best hits were kept, whereas 75% was used for DEFBs.
 
@@ -94,7 +95,7 @@ done
 ```
 You can either write one loop for every AMP family or write a loop that iterates through multiple AMP families.
 
-# AMP probability estimation
+# AMP PROBABILITY ESTIMATION
 
 After quering bat proteomes and keeping sequences based on criteria mentioned in Castellanos et al. (2023), resulting datasets were subjected to an AMP probability test using the [ampir](https://github.com/Legana/AMP_pub) package.
 
@@ -235,7 +236,7 @@ seqkit fx2tab "$i"/"$i".maker.output/"$i".all.maker.proteins.fasta -i -H -C BJOU
 done
 ```
 
-# Functional annotation
+# FUNCTIONAL ANNOTATION
 
 I used [interproscan](https://interproscan-docs.readthedocs.io/en/latest/Introduction.html) in a conda environment along with opendjk version 11 for this step. The `bat_list_amps.txt` in this section contains the abbreviations for the species I am working with.
 
@@ -295,7 +296,7 @@ done
 ```
 Then I concatenated all these files into a single `bats_all_other_amps.fasta` file for a final prediction round.
 
-# Final AMPs Prediction
+# FINAL AMPS PREDICTION
 
 ## Defensins and cathelicidins prediction
 
@@ -350,7 +351,7 @@ For alpha-beta defensins and cathelicidins prediction, I repeated the same steps
 
 I made a final multisequence alignment and got rid of sequences that did not have the 4-6 cystein motif. So the dataset went from 337 predicted proteins to 333 for the **final defensins+cathelicidins dataset**.
 
-This file is found in the `fasta_files` folder under the name `predicted_bat_defensins_cathelicidins.fasta`.
+This file is found in the `results` folder under the name `predicted_bat_defensins_cathelicidins.fasta`.
 
 ## Any other AMP prediction
 
@@ -380,15 +381,15 @@ filtered_all_other_amps_mature %>%
   geom_density(aes(x=prob_AMP))
 
 ## Save file
-df_to_faa(filtered_all_other_amps_mature, "filtered.ampir.bats.all.other.amps.fasta")
+df_to_faa(filtered_all_other_amps_mature, "predicted_bat_any_other_AMP.fasta")
 ```
-This file is found in the `fasta_files` folder under the name `predicted_bat_any_other_AMP.fasta`.
+This file is found in the `results` folder under the name `predicted_bat_any_other_AMP.fasta`.
 
-# Functional annotations stats
+# PREDICTED PROTEIN COUNTS
 
 ## All other AMPs
 
-First I obtained the headers of the proteins predicted by ampir:
+If you want to have a detailed look at the information provided by Interpro of the proteins predicted to be AMPs by ampir, you can look at the file called `all_other_amps_functional_annotation.tsv`, available in the `results` folder. This file was obtained as follows:
 
 ```bash
 # Get tsv files of all the bats
@@ -402,13 +403,13 @@ done
 grep -Fwf filtered.ampir.bats.all.other.amps.headers.txt bats_curated_proteins.tsv > all_other_amps_functional_annotation.tsv
 ```
 
-I also got a list of AMP names from the APD3 database to compare with my results.
+I also got a list of AMP names from the APD3 database to manually check and confirm for the presence of cryptic AMPs in my results.
 
 ```bash
 grep ">0" apd_and_vertebrates_AMPs.fasta | sed "s/|/\t/g ; s/(/\t/g; s/,/\t/g" | awk '{print $2}' | sort | uniq > list_of_APD3_amps_names.txt
 ```
 
-Finally, I got rid of proteins that were not AMPs and counted predicted AMP families per species with the code below and saved it in the `interpro_results.tsv` file.
+Using `list_of_APD3_amps_names.txt`, I got rid of proteins that were not AMPs and counted predicted AMP families per species with the code below and saved it in the `interpro_results.tsv` file.
 
 ```bash
 for bat in $(cat bat_list_amps.txt)
@@ -416,7 +417,12 @@ do
 column -t -s $'\t' "$bat"/"$bat".maker.output/curated_"$bat"_proteins.tsv | grep -v MobiDBLite | grep -v PRINTS | awk '{print $1 "\t" $6 "\t" $7}' | sed "s/,//g"  | awk '{ if ($3 >= 0 ) {print $1 "\t" $2} }' | awk 'NR==1 {print $0}; NR>1 {if(cat[$1])cat[$1]=cat[$1]", "$2; else cat[$1]=$2;}; END{j=1; for (i in cat) print i, cat[i]}' | sed "s/^/"$bat"\t/g"  | sed "s/,/\t/g" | column -t -s $'\t' | awk '{print $1 "\t" $2 "\t" $3 "\t" $4}' >> interpro.results.tsv
 done
 ```
-# Extract genes from gffs
+
+This table was used to create [Fig. 1](https://www.frontiersin.org/files/Articles/1250229/fimmu-14-1250229-HTML/image_m/fimmu-14-1250229-g001.jpg), and Table S3 of my manuscript. However, a lot of manual editing in Notepad++ and a combination of `sort` and `uniq` commands had to be applied to obtain the file called `all_types_of_amps_counts.tsv` that was later imported in R for plotting.
+
+
+
+# EXTRACT GENES FROM gffs
 
 Extracting $\alpha$, $\beta$-defensin, and cathelicidin genes (nucleotides) from the gff files that MAKER creates was necessary for the TE analysis.
 
@@ -491,7 +497,7 @@ bedtools getfasta -fi /path/to/softmasked/genome/"$i" -bed "$i"_cathelicidins_ge
 done
 ```
 
-# Annotate proteins with defensin subfamilies
+# ANNOTATE PROTEINS WITH DEFENSINS SUBFAMILIES
 
 The Interpro output doesn't exactly states which defensin subfamilies I may have retrieved, thus, I blasted the dataset I used to predict AMPs in ampir to get functional names of the proteins.
 
@@ -624,7 +630,7 @@ BLAST showed that both belonged to DEFB109 like proteins so I manually changed t
 |NP_001123438.1|protegrin-2 precursor|
 |NP_001116622.1|protegrin-3 precursor|
 
-# Families expansions and contractions
+# FAMILIES EXPANSIONS AND CONTRACTIONS
 
 ## OrthoFinder
 
@@ -711,6 +717,11 @@ LRT <- -2*(logLik1 - logLik2)
 # Calculate the p-value of the LRT
 pval <- pchisq(LRT, df = (5 - 3), lower.tail = FALSE)
 ```
+
+# PLOTTING
+
+To be completed....
+
 # Citation
 
 If you use this code or any dataset please cite: Castellanos FX, Moreno-Santillán D, Hughes GM, Paulat NS, Sipperly N, Brown AM, Martin KR, Poterewicz GM, Lim MCW, Russell AL, Moore MS, Johnson MG, Corthals AP, Ray DA and Da´ valos LM (2023) The evolution of antimicrobial peptides in Chiroptera. Front. Immunol. 14:1250229. doi: 10.3389/fimmu.2023.1250229
